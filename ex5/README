@@ -1,0 +1,76 @@
+akiva_s, roigreenberg
+Akiva Sygal(305277220), Roi Greenberg(305571234)
+Ex: 5
+
+FILES:
+iosafe.h - header file for iosafe.cpp
+iosafe.cpp - a helper with functions that read and write buffers
+clftp.cpp -  as described in the excercise instructions
+srftp.cpp -  as described in the excercise instructions
+README
+Makefile
+
+REMARKS:
+iosafe contains some code that is used to send information safely between client and server.
+it implements some functions that read from the buffer the size, name, and file information itself,
+based on the agreed format of buffer information between client and server.
+the rest is implemented by multi-threading read and write through TCP sockets.
+
+ANSWERS:
+***UDP IMPLEMENTATION***
+if we want to implement a UDP-based protocol, first we want our sockets not to establish a
+safe connection using "listen" and "accept", but just after the "bind" operation to start
+sending and getting pre-defined size datagrams (can set it to 512 bytes each one, for example)
+of information using "send" and "recivefrom".
+the datagrams of information can be lost while sending, or arrive in a different order.
+to solve that, the client should re-format the information such that each of our packets would
+start with the packet serial number (before the actual bits of informationit carries) in
+its first 4 bytes, a fact known also by the reciever (server). the client stores the information
+in the packets he gets in a pre-sized array, with enough space for a pre-defined number of packets
+X (if we want this number to be efficient, we can decide it using the algorithm for window size
+learned in class, the one that the TCP protocol uses with exponential-limited size),
+*according to their order of serial numbers attached* (not to the order of recieveing them).
+when this array is full, the server sends some "ack" saying the array is full and the client
+should now pend the sending of new packets (if the number X is constant, the client can know
+it in advance and every X packets stop and wait for an "ack"). after this ack, the client
+knows it now waits to know if it can continue to send new packets. the server then scans its
+array, looking for missing packets. then it sends the client the numbers of missing packets
+and the client sends them again, and again, till it gets from the server the second ack saying
+all packets have arrived and the arry is full. before server sends the second ack, it empties 
+the array, writing all its content to the file. after getting the second ack the client knows
+it can start sending the next X packets, that will fill the empty array of the server,
+and the process statrts again.
+comment: in UDP we are not sure if a packet would arrive, or when will it arrive, but once we
+got it we know it's probably correct because of the checksum.
+another comment: if server gets a packet that he already have stored in the array, it just throws
+it to garbage.
+we see that in UDP-using protocol, the implementation of reliable server is much more complicated
+and less efficient from our side (even though we say we can try to immitate the efficient algorithm
+that TCP is using to determine its window size).we cannot trust that everything that was sent would
+actually arrive, so we need to check every X packets that we've got all of them. second, we can't
+just write to file each packet we get since the order is messy, and for that porpuse we need the
+helper-array to store the packets in their actual order (for the same reason, we need the packets
+to have serial numbers). in the TCP implementation, we did not need to worry about the dividing
+into packets - it was an internal issue of the TCP protocol, we just sent a full buffer and read
+it fully once, without trusting about the little units that the information is divided into while
+sending.
+
+
+***PERFORMANCES***
+Size in bytes:    Time in nano-seconds:
+896	          1582835
+43990	          1955767
+167225	          3383060
+430951	          6781904
+1506422	          14690124
+	
+2938880	          26281373
+6516529	          55507357
+11422588	  347430763
+
+
+this gets somehow direct proportion between the file size and the time it is being sent.
+those results was get by the average of 250 runs on each one of the files, calling "get time of the day" before
+and after sending, relying on the fact that in TCP the program would not continue before the whole information
+was recieved successfully.
+

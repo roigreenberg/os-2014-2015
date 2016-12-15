@@ -1,0 +1,69 @@
+akiva_s, roigreenberg
+Akiva Sygal(305277220), Roi Greenberg(305571234)
+Ex: 4
+
+FILES:
+README
+CachingFileSystem.cpp -- a file that implements the Caching File System
+makefile
+
+REMARKS:
+Most of the functins are implement same as the bbfs example and are very simple
+so no need to expplain them.
+We will explain how the read work
+for the cache we have struct containing general information as block nmber, 
+directories path ect. nd also contain a vector Blocks.
+The Blocks are second struct, contain information for single block.
+This information is the path for the file the data took from, the number of the
+block in this file, a counter of use and f course the data itself.
+Each time a file beign read, we are going block by block.
+For each block we first look for an exists block. If we can't find one, we 
+"activate" another block. If all the block are correntlly in use we search for 
+the least frequancy block, and replace it with the new block.
+Then the function copy the data to the buffer and goes to the next rblock if 
+needed.
+
+
+ANSWERS:
+
+1 by default, heap memory is saved on RAM and so accessing it is much faster 
+than accessing the disk. *but* the heap is a virtual memory section and can 
+somtimes be mapped into disk - no garantuee that our heap-cache would really 
+be saved on RAM, so if it is actually saved on disk, we would get no better 
+performances.
+2. no implementation is absolutely better: in Array implementation, reading 
+a specificf block is easier since we have random access to it, but when we 
+have to delete a block it would take O(n) time to find the ideal block to 
+delete, so this implementation is better when you know that your program would
+read the same files (=blocks) a lot of times and would seldom read new files. 
+In the other hand, the list implementation can easily delete the less used 
+block but cannot access spesific blocks efficiently, so it should be preffered
+ when we most of the time read new information and seldom read the same data 
+several times.,
+3. the difference is that paging is used for *memory access*. memory access 
+treated in user-level and so happens all time, so updating the data structure 
+each time the memory is accessed (by user or so) is not realistic (veryy 
+expensive). but reading a block from disk can be treated only by kernel - it 
+requires a system call, takes much more time and so happens much seldom, so in 
+this case updating the data structure in each access to a filr block is 
+realistic.
+4. LRU better: if we are treating each file after reading it, and only when 
+finishing the work with the current file we continue to read the next one. 
+In this case, deleting the less recently block would delete a block from the 
+oldest file imported, which most probabely is not needed antmore.
+LFU better: if we are treating files with different information to be handled, 
+where some of the information is really important and have to be used a lot of
+time, where somw of the other files contain unimportent information that after
+reading once is not needed. in that case we want to delete the less important 
+information, which is most likely the information we have read the less number 
+of times.
+both strategies are bad: when we are a file server that only provides file 
+reading services to some user. we cannot know what is the next file the user 
+will ask us to supply, so each of the algorithm is only a guess since we don't 
+know the logic of files reading.
+5. the size of blocks that the OS read from the file system. if we read smaller
+blocks, it causes some "internal fragmentation" since when we want to read our 
+small-size block, in any case the os would have to import the whole os-sized 
+block from the memory and the rest of it would be spended. if we read more than
+the os block size each time, in each block importation we actually need to 
+import more than 1 block, making the import action much expensive than needed.

@@ -1,0 +1,62 @@
+akiva_s, roigreenberg
+Akiva Sygal (305277220), Roi Greenberg (305571234)
+EX: 1
+
+FILES:
+osm.c -- a file that implements the given osm.h
+makefile
+
+REMARKS:
+no
+
+ANSWERS:
+
+Task 1:
+	the program create a file inside folders' write the username(after
+	milion spaces) then the argument at the next line. then close and
+	delete everything.
+
+        the system calls:
+
+
+        mkdir - create "os" folder (with define permossions)
+        mkdir - create "2015" folder inside "os" (with define permossions)
+
+        open - (create and) open "info" file from "os/2015/" and the FD is 3
+
+        write - write the username(after	milion spaces) then the argument at the 
+                next line
+
+        close - closes the FD in 3(the given parameter) so it's not refer to any 
+                file and can be reuse
+
+        unlink - delete 'info' file-name from the filesystem. the file will be deleted
+                if nothing use it.
+
+        rmdir - deletes the folder(if they are empty)
+
+        exit_group - exit all of the threads in the prosses
+
+Task 2: 
+ 1. a.	if 2 programs write to the same file and one is saving the current
+	state while the other continue to write, when the first program finish
+	with the interrupt, it could start write from the saved state and
+	override what the second program does.
+
+    b.	if the program is time-based, while stopping for an interrupt it's 
+	may save (among other things) the current time and then restore it
+	even-though it the wrong time since time comtinue to move while the
+	interrupt was in action.
+
+ 2.  	that a very bad solution. It can paralized the computer. while 1 
+	program is running, no one can access the hard drive, the I/O devices
+	and etc.
+
+Task 3:
+    we implemented the iterarions in each function with loop unrolling of 10s. each time we've measured the
+    just before and after the loop (using 2 calls to "gettimeofday"), and divided the difference by the number of 
+    iterations. for that we've used he function "time_difference_msec" that calculates the differences in nanoseconds 
+    between 2 imstances of the struct "timeval". also, we've added the function "fixIterations" to deal with invalid 
+    input, including rounding it up to a multiplication of 10 and handling 0 input. also we've defined the variables in 
+    the functions as volatile so they could not be optimized out, and recommended the compiler to store them on 
+    registers to save time.

@@ -1,0 +1,47 @@
+akiva_s,roigreenberg
+Akiva Sygal(305277220), Roi Greenberg(305571234)
+Ex: 3
+
+FILES:
+README
+blockChain.cpp -- a file that implements the given blockChain.h
+makefile
+
+REMARKS:
+we used the next DASTs: one map that holds the information about every block,
+a list of all leaves in the tree-chain (which is enough to represent the chain
+itself), a list of all deepest leaves from which we random each time we want
+to get the longest branch in chain, and a queue of pending blocks that have
+to be added to chain.
+we manage 2 threads more than the main one: a deamon thread that tries all
+the time to add the new blocks to chain, and a thread that is responsible
+to close the chain when close_chain is called.
+To make sure only one init can be called and also the init is the first to be 
+called, we use an ENUM that know the current state, destroyed,destroying or 
+initialized. this prevents also adding blocks to chain while destroying it.
+
+we had a lock for every data structure, and we made the order of locking the
+structures consistent through the whole program to prevent deadlocks. 
+In addition, we got a condition variable that announce the deamon that there 
+are new pending blocks that have to be added, and a lock for the 
+synchronization between the closing thread and "return to close" function.
+another lock is used in order to let attach now stop the deamon thread 
+immediatly (without having to wait till deamon will open the pending lock so
+"attach now" could take it. this way "attach now" can just actively block the 
+deamon till it ends its attachement).
+
+ANSWERS:
+
+1. That happend because 'add_block' is non-blocking. The number is affected by
+the time take to calculate the hash.
+If add_block will be blocking or hashing time will be 0 that will change.
+
+2. We can mark every block with 'to_longest'. That way every block will add at
+the bottom of the chain and there will be no 'sub-chain'.
+
+3. If we wont block the chain while calculating the hash of a block with 
+'to_longest' flag, there is a chance that during the long hash calculation 
+other block added to the chain(one that start earlier, or in case attach_now 
+add it) or prune was called and delete the father and then we will need to 
+calculate it again. that scenerio can be every time up to infinity and the 
+block wont succeed to be addad.

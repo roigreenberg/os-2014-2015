@@ -1,0 +1,42 @@
+akiva_s,roigreenberg
+Akiva Sygal(305277220), Roi Greenberg(305571234)
+Ex: 2
+
+FILES:
+uthreads.cpp -- a file that implements the given uthreads.h
+makefile
+
+REMARKS:
+
+data structures we used: a struct for thread, consisting of most of the PCB 
+componets as we saw in class. for the priorities queue we used a struct 
+consisted of 3 deques (because a simple c++ queue cannot be iterated, and we 
+wanted to have an acces not only to the item in the front, for deleting etc) 
+for each priority color. in addition we made an array consisting of all the 
+PCB of the threads that are not terminated, so the queus of threads would 
+contain only their indexes adn not the PCBs itselves.
+
+we used a "switch" function with the principal shown in class, with the 
+addition of signals handeling to ensure that while the "switch" is running 
+the clock cannot ask for another "switch" just after it. we reset the clock 
+before we jump (=sigsetjmp), since we can also jump to "uthread_spawn" in the 
+first time a thread is being switched to. a terminated thread is identified 
+by changing its id to -1.
+
+ 
+
+ANSWERS:
+
+question 1:
+RR- a pro is that no starvation can happen. a con is that if something needs 
+an immediate response by some thread we can't push it up and should wait to 
+his turn. PQ - a pro is that we can make a fundamental process to run more 
+than others. con - starvation can happen if there are long-running priorated 
+procesess. in our implementation starvation can still happen therotically, 
+but we can priorate importante threads to run more than the less important 
+ones.
+
+question 2: 
+a user can actively pause a movie and though block a media process, or ask 
+for some infromation that has to be searched in the disk and block process 
+meanwhile.
